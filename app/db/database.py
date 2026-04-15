@@ -63,8 +63,7 @@ def save_teams(teams: list):
                 team["crest"]
             ))
 
-def save_standings(standings: dict):
-    table = standings["standings"][0]["table"]
+def save_standings(table: list):
     with get_db() as conn:
         cursor = conn.cursor()
         for team in table:

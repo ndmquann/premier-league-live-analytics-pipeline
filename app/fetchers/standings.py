@@ -10,7 +10,7 @@ def get_standings():
         if "standings" not in data:
             raise ValueError(f"Unexpected response format: {data.keys()}")
         
-        return data
+        return data["standings"][0]["table"]
     except requests.RequestException as e:
         print(f"Error fetching standings: {e}")
-        return {"standings": []}
+        return []

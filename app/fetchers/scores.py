@@ -13,10 +13,10 @@ def get_live_scores():
         if "matches" not in data:
             raise ValueError(f"Unexpected response format: {response.json().keys()}")
         
-        return data
+        return data["matches"]
     except requests.RequestException as e:
         print(f"Error fetching live scores: {e}")
-        return {"matches": []}
+        return []
     
 def extract_match_info(match):
     home_team = match["homeTeam"]["name"]

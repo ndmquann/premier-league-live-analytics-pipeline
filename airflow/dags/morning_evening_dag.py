@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from app.fetchers.fixtures import get_today_fixtures
 from app.fetchers.standings import get_standings
 from app.fetchers.liverpool import get_liverpool_last_results
+from app.db.database import save_teams, save_standings, save_matches
 
 with DAG(
     dag_id="morning_evening_dag",
@@ -17,14 +18,55 @@ with DAG(
     schedule="0 8,18 * * *",
     catchup=False
 ) as dag:
+    
+    def _get_fixtures():
+        return get_today_fixtures()
+    
+    def _get_standings():
+        return get_standings()
+    
+    def _save_teams(**context):
+        ti = context["ti"]
+        table = ti.xcom_pull(task_ids="fetch_standings")
+        print(type(table))
+        teams = []
+        for team in table:
+            teams.append(team["team"])
+        save_teams(teams)
+    
+    def _save_standings(**context):
+        ti = context["ti"]
+        table = ti.xcom_pull(task_ids="fetch_standings")
+        save_standings(table)
+    
+    def _save_matches(**context):
+        ti = context["ti"]
+        matches = ti.xcom_pull(task_ids="fetch_fixtures")
+        save_matches(matches)
+
     fetch_fixtures = PythonOperator(
         task_id="fetch_fixtures",
-        python_callable=get_today_fixtures
+        python_callable=_get_fixtures
+    )
+
+    save_teams_task = PythonOperator(
+        task_id="save_teams",
+        python_callable=_save_teams
+    )
+
+    save_matches_task = PythonOperator(
+        task_id="save_matches",
+        python_callable=_save_matches
     )
 
     fetch_standings = PythonOperator(
         task_id="fetch_standings",
-        python_callable=get_standings
+        python_callable=_get_standings
+    )
+
+    save_standings_task = PythonOperator(
+        task_id="save_standings",
+        python_callable=_save_standings
     )
 
     fetch_liverpool = PythonOperator(
@@ -32,4 +74,4 @@ with DAG(
         python_callable=get_liverpool_last_results
     )
 
-    fetch_fixtures >> fetch_standings >> fetch_liverpool
+    fetch_fixtures >> fetch_standings >> save_teams_task >> save_standings_task >> save_matches_task >> fetch_liverpool

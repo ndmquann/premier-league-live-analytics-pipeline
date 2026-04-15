@@ -12,10 +12,10 @@ def get_liverpool_fixtures():
         if "matches" not in data:
             raise ValueError(f"Unexpected response format: {data.keys()}")
         
-        return data
+        return data["matches"]
     except requests.RequestException as e:
         print(f"Error fetching Liverpool fixtures: {e}")
-        return {"matches": []}
+        return []
 
 def get_liverpool_last_results():
     results_url = f"{BASE_URL}/teams/{LIVERPOOL_ID}/matches?status=FINISHED"
@@ -26,7 +26,7 @@ def get_liverpool_last_results():
         if "matches" not in data:
             raise ValueError(f"Unexpected response format: {data.keys()}")
         
-        return data
+        return data["matches"]
     except requests.RequestException as e:
         print(f"Error fetching Liverpool results: {e}")
-        return {"matches": []}
+        return []
