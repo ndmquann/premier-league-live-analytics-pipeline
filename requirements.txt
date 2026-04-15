@@ -1,0 +1,6 @@
+requests
+pydantic
+python-dotenv
+streamlit
+pandas
+psycopg2-binary
