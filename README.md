@@ -58,6 +58,7 @@ pl-pipeline/
 ├── requirements.txt
 ├── .env                        # secrets — never commit this
 ├── .dockerignore
+├── .gitignore
 └── README.md
 ```
 
