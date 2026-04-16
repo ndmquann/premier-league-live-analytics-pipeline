@@ -11,7 +11,7 @@ standings = pd.DataFrame(
                 data=get_standings(),
                 columns=[
                     "position",
-                    "team_id",
+                    "team_name",
                     "played_games",
                     "won",
                     "draw",

@@ -20,15 +20,16 @@ with DAG(
 ) as dag:
     
     def _get_fixtures():
-        return get_today_fixtures()
+        data = get_today_fixtures()
+        return data
     
     def _get_standings():
-        return get_standings()
-    
+        data = get_standings()
+        return data
+
     def _save_teams(**context):
         ti = context["ti"]
         table = ti.xcom_pull(task_ids="fetch_standings")
-        print(type(table))
         teams = []
         for team in table:
             teams.append(team["team"])

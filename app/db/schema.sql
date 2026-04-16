@@ -36,9 +36,8 @@ CREATE TABLE IF NOT EXISTS goals (
 );
 
 CREATE TABLE IF NOT EXISTS standings (
-    id INTEGER PRIMARY KEY,
-    position INTEGER NOT NULL,
-    team_id INTEGER REFERENCES teams(id),
+    position INTEGER PRIMARY KEY,
+    team_id INTEGER REFERENCES teams(id) UNIQUE,
     played_games INTEGER NOT NULL,
     won INTEGER NOT NULL,
     draw INTEGER NOT NULL,

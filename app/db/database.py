@@ -68,8 +68,8 @@ def save_standings(table: list):
         cursor = conn.cursor()
         for team in table:
             cursor.execute("""
-                INSERT INTO standings (position, team_id, played_games, won, draw, lost, goals_for, goals_against, goal_difference)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO standings (position, team_id, played_games, won, draw, lost, points, goals_for, goals_against, goal_difference)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (team_id) DO UPDATE SET
                     position = EXCLUDED.position,
                     team_id = EXCLUDED.team_id,
@@ -77,6 +77,7 @@ def save_standings(table: list):
                     won = EXCLUDED.won,
                     draw = EXCLUDED.draw,
                     lost = EXCLUDED.lost,
+                    points = EXCLUDED.points,
                     goals_for = EXCLUDED.goals_for,
                     goals_against = EXCLUDED.goals_against,
                     goal_difference = EXCLUDED.goal_difference
@@ -88,6 +89,7 @@ def save_standings(table: list):
                 team["won"],
                 team["draw"],
                 team["lost"],
+                team["points"],
                 team["goalsFor"],
                 team["goalsAgainst"],
                 team["goalDifference"]
@@ -175,6 +177,7 @@ def get_today_matches_and_scores():
             JOIN teams ht ON m.home_team_id = ht.id
             JOIN teams awt ON m.away_team_id = awt.id
             WHERE m.utc_date = CURRENT_DATE
+            ORDER BY m.utc_date;
         """)
         return cursor.fetchall()
 
@@ -182,7 +185,20 @@ def get_standings():
     with get_db() as conn:
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT * FROM standings;
+            SELECT 
+                s.position,
+                t.name as team_name,
+                s.played_games,
+                s.won,
+                s.draw,
+                s.lost,
+                s.points,
+                s.goals_for,
+                s.goals_against,
+                s.goal_difference
+            FROM standings s
+            JOIN teams t ON s.team_id = t.id
+            ORDER BY s.position;
         """)
         return cursor.fetchall()
 
@@ -195,7 +211,7 @@ def get_liverpool_points():
                 t.name as team_name
             FROM standings s
             JOIN teams t ON s.team_id = t.id
-            WHERE t.id = 64 
+            WHERE t.id = 64;
         """)
         return cursor.fetchone()
     
@@ -214,6 +230,7 @@ def get_today_goals():
             LEFT JOIN players a ON g.assist_id = a.id
             JOIN teams t ON g.team_id = t.id
             JOIN matches m ON g.match_id = m.id
-            WHERE m.utc_date = CURRENT_DATE    
+            WHERE m.utc_date = CURRENT_DATE
+            ORDER BY g.minute; 
         """)
         return cursor.fetchall()

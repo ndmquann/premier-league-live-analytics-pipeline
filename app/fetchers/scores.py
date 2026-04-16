@@ -1,19 +1,22 @@
-from app.fetchers.base import BASE_URL, headers
+from app.fetchers.base import BASE_URL, get_headers, get_pl_matches
 import requests
 
 LIVE_STATUSES = ["IN_PLAY", "PAUSED", "EXTRA_TIME", "PENALTY_SHOOTOUT"]
 
 def get_live_scores():
-    live = ",".join(LIVE_STATUSES)
-    scores_url = f"{BASE_URL}/competitions/PL/matches?status={live}"
+    scores_url = f"{BASE_URL}/matches"
     try:
-        response = requests.get(scores_url, headers=headers)
+        response = requests.get(scores_url, headers=get_headers())
         response.raise_for_status()
         data = response.json()
-        if "matches" not in data:
-            raise ValueError(f"Unexpected response format: {response.json().keys()}")
+        pl_matches = get_pl_matches(data)
         
-        return data["matches"]
+        matches = []
+        for match in pl_matches:
+            if match["status"] in LIVE_STATUSES:
+                matches.append(match)
+
+        return matches
     except requests.RequestException as e:
         print(f"Error fetching live scores: {e}")
         return []
