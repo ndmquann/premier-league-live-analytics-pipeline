@@ -8,7 +8,7 @@ A data pipeline that crawls Premier League match data — scores, scorers, stand
 
 - Fetches today's Premier League fixtures every morning and evening (8AM + 6PM Vietnam time)
 - Polls live scores and goal events every 15 minutes during active matches
-- Tracks standings, scorers, and assists in a PostgreSQL database
+- Tracks standings in a PostgreSQL database
 - Highlights Liverpool FC stats on the dashboard
 - Smart scheduling — only polls when matches are actually live (`IN_PLAY`, `PAUSED`, `EXTRA_TIME`, `PENALTY_SHOOTOUT`)
 
@@ -23,7 +23,7 @@ Python fetchers (requests + pydantic)
         ↓
 Airflow DAGs (scheduling + orchestration)
         ↓
-PostgreSQL (matches, goals, standings, players, teams)
+PostgreSQL (matches, standings, teams)
         ↓
 Streamlit dashboard (read-only)
 ```
@@ -38,7 +38,7 @@ pl-pipeline/
 │   ├── fetchers/
 │   │   ├── base.py             # shared API config
 │   │   ├── fixtures.py         # today's scheduled matches
-│   │   ├── scores.py           # live scores + goal events
+│   │   ├── scores.py           # live scores events
 │   │   ├── standings.py        # Premier League table
 │   │   └── liverpool.py        # Liverpool fixtures + results
 │   ├── models/
@@ -69,9 +69,7 @@ pl-pipeline/
 | Table | Description |
 |-------|-------------|
 | `teams` | Club names, short names, crest URLs |
-| `players` | Player names, populated on first goal |
-| `matches` | Fixtures, scores, status, venue, matchday |
-| `goals` | Scorer, assist, minute, goal type, per match |
+| `matches` | Fixtures, scores, status, matchday |
 | `standings` | Live league table — one row per team, upserted each matchday |
 
 ---
@@ -89,7 +87,7 @@ fetch_fixtures → fetch_standings → fetch_liverpool
 Runs every **15 minutes**, all day.
 
 ```
-check_live (ShortCircuit) → fetch_scores → extract_goals
+check_live (ShortCircuit) → fetch_scores
 ```
 
 Skips entirely if no match status is `IN_PLAY`, `PAUSED`, `EXTRA_TIME`, or `PENALTY_SHOOTOUT`.
@@ -162,7 +160,6 @@ The Streamlit dashboard shows:
 
 - **Liverpool FC** — position, points, played, won, lost as live metrics
 - **Today's matches** — kick-off times (Vietnam time), live scores, match status
-- **Today's goals** — scorer, assist, minute, goal type
 - **Full standings** — Premier League table with all stats
 
 ---

@@ -70,8 +70,7 @@ def save_standings(table: list):
             cursor.execute("""
                 INSERT INTO standings (position, team_id, played_games, won, draw, lost, points, goals_for, goals_against, goal_difference)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                ON CONFLICT (team_id) DO UPDATE SET
-                    position = EXCLUDED.position,
+                ON CONFLICT (position) DO UPDATE SET
                     team_id = EXCLUDED.team_id,
                     played_games = EXCLUDED.played_games,
                     won = EXCLUDED.won,
@@ -96,21 +95,20 @@ def save_standings(table: list):
             ))
 
 def save_matches(matches: list):
+    print(matches[0])
     with get_db() as conn:
         cursor = conn.cursor()
         for match in matches:
             cursor.execute("""
-                INSERT INTO matches (id, home_team_id, away_team_id, home_team_score, away_team_score, utc_date, status, minute, venue, matchday)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO matches (id, home_team_id, away_team_id, home_score, away_score, utc_date, status, matchday)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (id) DO UPDATE SET
                     home_team_id = EXCLUDED.home_team_id,
                     away_team_id = EXCLUDED.away_team_id,
-                    home_team_score = EXCLUDED.home_team_score,
-                    away_team_score = EXCLUDED.away_team_score,
+                    home_score = EXCLUDED.home_score,
+                    away_score = EXCLUDED.away_score,
                     utc_date = EXCLUDED.utc_date,
                     status = EXCLUDED.status,
-                    minute = EXCLUDED.minute,
-                    venue = EXCLUDED.venue,
                     matchday = EXCLUDED.matchday
             """,
             (
@@ -121,42 +119,7 @@ def save_matches(matches: list):
                 match["score"]["fullTime"]["away"],
                 match["utcDate"],
                 match["status"],
-                match["minute"],
-                match["venue"],
                 match["matchday"]
-            ))
-
-def save_goals(goals: list, match_id: int):
-    with get_db() as conn:
-        cursor = conn.cursor()
-        for goal in goals:
-            cursor.execute("""
-                INSERT INTO players (id, name)
-                VALUES (%s, %s)
-                ON CONFLICT (id) DO NOTHING
-            """,
-            (
-                goal["scorer"]["id"],
-                goal["scorer"]["name"]
-            ))
-            cursor.execute("""
-                INSERT INTO goals (scorer_id, team_id, match_id, minute, injury_time, goal_type)
-                VALUES (%s, %s, %s, %s, %s, %s)
-                ON CONFLICT (match_id, scorer_id, minute) DO UPDATE SET
-                    scorer_id = EXCLUDED.scorer_id,
-                    team_id = EXCLUDED.team_id,
-                    match_id = EXCLUDED.match_id,
-                    minute = EXCLUDED.minute,
-                    injury_time = EXCLUDED.injury_time,
-                    goal_type = EXCLUDED.goal_type
-            """,
-            (
-                goal["scorer"]["id"],
-                goal["team"]["id"],
-                match_id,
-                goal["minute"],
-                goal["injuryTime"],
-                goal["type"]
             ))
 
 def get_today_matches_and_scores():
@@ -166,8 +129,6 @@ def get_today_matches_and_scores():
             SELECT 
                 m.utc_date, 
                 m.status, 
-                m.minute,
-                m.venue,
                 m.matchday,
                 ht.name as home_team_name,
                 awt.name as away_team_name,
@@ -214,23 +175,3 @@ def get_liverpool_points():
             WHERE t.id = 64;
         """)
         return cursor.fetchone()
-    
-def get_today_goals():
-    with get_db() as conn:
-        cursor = conn.cursor()
-        cursor.execute("""
-            SELECT 
-                g.minute,
-                s.name as scorer_name,
-                a.name as assist_name,
-                t.name as team_name,
-                g.goal_type
-            FROM goals g
-            JOIN players s ON g.scorer_id = s.id
-            LEFT JOIN players a ON g.assist_id = a.id
-            JOIN teams t ON g.team_id = t.id
-            JOIN matches m ON g.match_id = m.id
-            WHERE m.utc_date = CURRENT_DATE
-            ORDER BY g.minute; 
-        """)
-        return cursor.fetchall()

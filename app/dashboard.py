@@ -2,7 +2,6 @@ from app.db.database import (
     get_today_matches_and_scores,
     get_standings,
     get_liverpool_points,
-    get_today_goals
 )
 import pandas as pd
 import streamlit as st
@@ -28,24 +27,11 @@ matches = pd.DataFrame(
                 columns=[
                     "utc_date",
                     "status",
-                    "minute",
-                    "venue",
                     "matchday",
-                    "home_team_id",
-                    "away_team_id",
+                    "home_team_name",
+                    "away_team_name",
                     "home_team_score",
                     "away_team_score"
-                ]
-)
-
-goals = pd.DataFrame(
-                data=get_today_goals(),
-                columns=[
-                    "minute",
-                    "scorer_name",
-                    "assist_name",
-                    "team_name",
-                    "goal_type"
                 ]
 )
 
@@ -62,9 +48,6 @@ col5.metric("Lost", liverpool['lost'], delta=-liverpool['lost'])
 
 st.header("Today's Matches")
 st.dataframe(matches, use_container_width=True)
-
-st.header("Today's Goals")
-st.dataframe(goals, use_container_width=True)
 
 st.header("Standings")
 st.dataframe(standings, use_container_width=True)

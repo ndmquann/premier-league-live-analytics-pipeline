@@ -20,25 +20,6 @@ def get_live_scores():
     except requests.RequestException as e:
         print(f"Error fetching live scores: {e}")
         return []
-    
-def extract_match_info(match):
-    home_team = match["homeTeam"]["name"]
-    away_team = match["awayTeam"]["name"]
-    score = f"{match['score']['fullTime']['home']} - {match['score']['fullTime']['away']}"
-    goals = []
-    for goal in match["goals"]:
-        goals.append({
-            "scorer": goal["scorer"]["name"],
-            "team": goal["team"]["name"],
-            "assist": goal["assist"]["name"] if goal["assist"] else "N/A",
-            "minute": goal["minute"]
-        })
-    return {
-        "home_team": home_team,
-        "away_team": away_team,
-        "score": score,
-        "goals": goals
-    }
 
 def is_match_live(matches: list) -> bool:
     return any(m["status"] in LIVE_STATUSES for m in matches)
