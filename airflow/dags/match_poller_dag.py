@@ -8,7 +8,7 @@ from app.db.database import save_matches
 with DAG(
     dag_id="match_poller_dag",
     start_date=datetime(2024, 1, 1),
-    schedule="*/15 * * * *", # Run every 15 minutes
+    schedule="*/15 18 * * *", # Run every 15 minutes
     catchup=False
 ) as dag:
     
