@@ -3,6 +3,7 @@ from airflow.operators.python import ShortCircuitOperator, PythonOperator
 from datetime import datetime, timedelta
 from app.fetchers.scores import get_live_scores, is_match_live
 from app.fetchers.fixtures import get_today_fixtures
+from app.db.database import save_matches
 
 with DAG(
     dag_id="match_poller_dag",
@@ -19,6 +20,11 @@ with DAG(
         matches = get_live_scores()
         return matches
                 
+    def _save_matches_scores(**context):
+        ti = context["ti"]
+        matches = ti.xcom_pull(task_ids="fetch_scores")
+        save_matches(matches)
+    
     fetch_lives = ShortCircuitOperator(
         task_id="fetch_lives",
         python_callable=_check_live
@@ -29,4 +35,9 @@ with DAG(
         python_callable=_fetch_scores_task
     )
 
-    fetch_lives >> fetch_scores
+    save_scores = PythonOperator(
+        task_id="save_scores",
+        python_callable=_save_matches_scores
+    )
+
+    fetch_lives >> fetch_scores >> save_scores
