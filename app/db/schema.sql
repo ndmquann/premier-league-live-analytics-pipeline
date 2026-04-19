@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS teams (
 CREATE TABLE IF NOT EXISTS matches (
     id INTEGER PRIMARY KEY,
     utc_date DATE NOT NULL,
+    time TIME NOT NULL,
     status TEXT NOT NULL,
     matchday INTEGER,
     home_team_id INTEGER REFERENCES teams(id),

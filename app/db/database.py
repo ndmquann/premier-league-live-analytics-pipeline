@@ -100,8 +100,8 @@ def save_matches(matches: list):
         cursor = conn.cursor()
         for match in matches:
             cursor.execute("""
-                INSERT INTO matches (id, home_team_id, away_team_id, home_score, away_score, utc_date, status, matchday)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO matches (id, home_team_id, away_team_id, home_score, away_score, utc_date, status, matchday, time)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (id) DO UPDATE SET
                     home_team_id = EXCLUDED.home_team_id,
                     away_team_id = EXCLUDED.away_team_id,
@@ -109,7 +109,8 @@ def save_matches(matches: list):
                     away_score = EXCLUDED.away_score,
                     utc_date = EXCLUDED.utc_date,
                     status = EXCLUDED.status,
-                    matchday = EXCLUDED.matchday
+                    matchday = EXCLUDED.matchday,
+                    time = EXCLUDED.time
             """,
             (
                 match["id"],
@@ -119,7 +120,8 @@ def save_matches(matches: list):
                 match["score"]["fullTime"]["away"],
                 match["utcDate"],
                 match["status"],
-                match["matchday"]
+                match["matchday"],
+                match["time"]
             ))
 
 def get_today_matches_and_scores():
@@ -129,6 +131,7 @@ def get_today_matches_and_scores():
             SELECT 
                 m.utc_date, 
                 m.status, 
+                m.time,
                 m.matchday,
                 ht.name as home_team_name,
                 awt.name as away_team_name,
@@ -175,3 +178,23 @@ def get_liverpool_points():
             WHERE t.id = 64;
         """)
         return cursor.fetchone()
+
+def get_weekday_result(matchday):
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT
+                m.utc_date,
+                m.status,
+                m.time,
+                ht.name as home_team_name,
+                awt.name as away_team_name,
+                m.home_score,
+                m.away_score
+            FROM matches m
+            JOIN teams ht ON m.home_team_id = ht.id
+            JOIN teams awt ON m.away_team_id = awt.id
+            WHERE m.matchday = %s
+            ORDER BY m.utc_date;
+        """, (int(matchday),))
+        return cursor.fetchall()

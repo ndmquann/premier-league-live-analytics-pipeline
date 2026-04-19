@@ -17,6 +17,7 @@ def get_today_fixtures():
             utc_time = datetime.strptime(match["utcDate"], "%Y-%m-%dT%H:%M:%SZ")
             local_time = utc_time.replace(tzinfo=timezone.utc).astimezone(vietnam_tz)
             if local_time.date() == datetime.now(vietnam_tz).date():
+                match["time"] = local_time.strftime("%H:%M")
                 today_matches.append(match)
         return today_matches
     except requests.RequestException as e:
