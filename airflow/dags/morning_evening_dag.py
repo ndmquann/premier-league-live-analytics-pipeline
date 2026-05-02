@@ -9,7 +9,7 @@ from app.db.database import save_teams, save_standings, save_matches
 with DAG(
     dag_id="morning_evening_dag",
     start_date=datetime(2024, 1, 1),
-    schedule="0 8,18 * * *",
+    schedule="0 0,18 * * *",
     catchup=False
 ) as dag:
     

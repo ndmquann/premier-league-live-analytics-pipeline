@@ -95,7 +95,6 @@ def save_standings(table: list):
             ))
 
 def save_matches(matches: list):
-    print(matches[0])
     with get_db() as conn:
         cursor = conn.cursor()
         for match in matches:
@@ -122,6 +121,25 @@ def save_matches(matches: list):
                 match["status"],
                 match["matchday"],
                 match["time"]
+            ))
+
+def save_live_scores(matches: list):
+    with get_db() as conn:
+        cursor = conn.cursor()
+        for match in matches:
+            cursor.execute("""
+                UPDATE matches
+                SET 
+                    home_score = %s,
+                    away_score = %s,
+                    status = %s
+                WHERE id = %s;
+            """,
+            (
+                match["score"]["fullTime"]["home"],
+                match["score"]["fullTime"]["away"],
+                match["status"],
+                match["id"]
             ))
 
 def get_today_matches_and_scores():
