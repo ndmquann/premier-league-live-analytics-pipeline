@@ -159,7 +159,7 @@ def get_today_matches_and_scores():
             JOIN teams ht ON m.home_team_id = ht.id
             JOIN teams awt ON m.away_team_id = awt.id
             WHERE m.utc_date = CURRENT_DATE
-            ORDER BY m.utc_date;
+            ORDER BY m.utc_date, m.time;
         """)
         return cursor.fetchall()
 
@@ -213,6 +213,6 @@ def get_weekday_result(matchday):
             JOIN teams ht ON m.home_team_id = ht.id
             JOIN teams awt ON m.away_team_id = awt.id
             WHERE m.matchday = %s
-            ORDER BY m.utc_date;
+            ORDER BY m.utc_date, m.time;
         """, (int(matchday),))
         return cursor.fetchall()
