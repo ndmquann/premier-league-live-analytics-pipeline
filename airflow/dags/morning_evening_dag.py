@@ -6,13 +6,7 @@ from app.fetchers.standings import get_standings
 from app.fetchers.liverpool import get_liverpool_last_results
 from app.db.database import save_teams, save_standings, save_matches
 
-with DAG(
-    dag_id="morning_evening_dag",
-    start_date=datetime(2024, 1, 1),
-    schedule="0 0,18 * * *",
-    catchup=False
-) as dag:
-    
+def run_pipeline():
     def _get_fixtures():
         data = get_today_fixtures()
         return data
@@ -70,3 +64,17 @@ with DAG(
     )
 
     fetch_fixtures >> fetch_standings >> save_teams_task >> save_standings_task >> save_matches_task >> fetch_liverpool
+
+with DAG(
+    dag_id="morning_dag",
+    start_date=datetime(2024, 1, 1),
+    schedule="0 0 * * *"
+) as dag_morning:
+    run_pipeline()
+
+with DAG(
+    dag_id="evening_dag",
+    start_date=datetime(2024, 1, 1),
+    schedule="59 23 * * *"
+) as dag_evening:
+    run_pipeline()
